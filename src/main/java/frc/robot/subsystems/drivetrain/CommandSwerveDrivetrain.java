@@ -10,16 +10,20 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import drivers.PhoenixSwerveHelper;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,18 +31,23 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drivetrain.generated.TunerConstants.TunerSwerveDrivetrain;
+import lombok.Getter;
 import vision.LimelightHelpers;
 import vision.LimelightHelpers.PoseEstimate;
+import vision.LimelightVision.Limelight;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
+    @Getter private  PhoenixSwerveHelper helper;
     PoseEstimate m_PoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front");
+    private Field2d fieldWidget = new Field2d();
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+    boolean doRejectVisionUpdate = false;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -224,6 +233,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+        LimelightHelpers.SetRobotOrientation("limelight-front", getHeading().getDegrees(), 0, 0, 0, 0, 0);
+        //System.out.println("Pigeon 2 Yaw: " + getPigeon2().getYaw().getValueAsDouble());
+        fieldWidget.setRobotPose(getPose());
+        SmartDashboard.putData("Field", fieldWidget);
+
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -241,7 +255,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
-    
+
         if(LimelightHelpers.getTV("limelight-front")){
             if (m_PoseEstimate == null
             || m_PoseEstimate.tagCount == 0
@@ -258,6 +272,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             9999999));
 
         }
+
+       // validateVisionEstimate();
     }
 
     private void startSimThread() {
@@ -309,6 +325,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
 
+    
     public Pose2d getPose() {
         return getState().Pose;
       }
@@ -316,7 +333,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Rotation2d getHeading() {
         return getPose().getRotation();
     }
-
+/* 
+    public void resetPigeonYaw(){
+        getPigeon2().setYaw(0.0);
+    }
+*/
     public Translation2d getLinearVelocity() {
     return new Translation2d(
         getState().Speeds.vxMetersPerSecond, getState().Speeds.vyMetersPerSecond)
@@ -330,5 +351,33 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
     return states;
   }
+
+    public Twist2d getFieldVelocity() {
+    return new Twist2d(
+        getLinearVelocity().getX(),
+        getLinearVelocity().getY(),
+        getState().Speeds.omegaRadiansPerSecond);
+  }
     
+
+    private void validateVisionEstimate(){
+
+        if(LimelightHelpers.getTV("limelight-front")){
+            if (m_PoseEstimate == null
+            || m_PoseEstimate.tagCount == 0
+            || !FieldConstants.FIELD_AREA.contains(m_PoseEstimate.pose.getTranslation())
+            || Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 540
+            || getLinearVelocity().getNorm() > 3.0) {
+          return;
+        }
+            addVisionMeasurement(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front").pose,
+            LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front").timestampSeconds,
+            VecBuilder.fill(
+            Math.pow(0.1, m_PoseEstimate.tagCount) * m_PoseEstimate.avgTagDist * 2,
+            Math.pow(0.1, m_PoseEstimate.tagCount) * m_PoseEstimate.avgTagDist * 2,
+            9999999));
+
+        }
+
+    }
 }

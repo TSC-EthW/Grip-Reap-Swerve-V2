@@ -2,12 +2,18 @@ package frc.robot.subsystems.drivetrain;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.util.HashMap;
+import java.util.TreeMap;
+
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.controllers.PathFollowingController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -25,6 +31,7 @@ public final class DrivetrainConstants {
   public static final ScreamPIDConstants HEADING_CORRECTION_CONSTANTS =
       new ScreamPIDConstants(8.0, 0.0, 0.0);
 
+  //TODO: Tune this PIDController for DriveToPose
   public static final ProfiledPIDController DRIVE_ALIGNMENT_CONTROLLER =
       new ProfiledPIDController(6.5, 0.0, 0.0, new Constraints(4, 8));
 
@@ -48,5 +55,9 @@ public final class DrivetrainConstants {
           PPUtil.screamPIDConstantsToPPConstants(PATH_TRANSLATION_CONSTANTS),
           PPUtil.screamPIDConstantsToPPConstants(PATH_ROTATION_CONSTANTS));
 
-    
+  public static final HashMap<Integer, Pose2d> ReefPose = new HashMap<>();
+  static{
+    // Give this map an ID (An April Tag in this case) and is will return the given Pose2d with the ID.
+    ReefPose.put(1, new Pose2d(120, 120, Rotation2d.fromDegrees(0.0)));
+  }
 }

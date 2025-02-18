@@ -358,8 +358,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         getLinearVelocity().getY(),
         getState().Speeds.omegaRadiansPerSecond);
   }
-    
 
+  public boolean comparePose2d(Pose2d targetPose, double xDeadzoneMeters, double yDeadzoneMeters, double tDeadzoneDegrees){
+    boolean xWithinSpec = false;
+    boolean yWithinSpec = false;
+    boolean tWithinSpec = false;
+
+    if(Math.abs(getPose().minus(targetPose).getMeasureX().in(Meters)) <= xDeadzoneMeters){
+        xWithinSpec = true;
+    }
+    if(Math.abs(getPose().minus(targetPose).getMeasureY().in(Meters)) <= yDeadzoneMeters){
+        yWithinSpec = true;
+    }
+    if(Math.abs(getPose().minus(targetPose).getRotation().getDegrees()) <= tDeadzoneDegrees){
+        tWithinSpec = true;
+    }
+    return xWithinSpec && yWithinSpec && tWithinSpec;
+  }
+    
+/* 
     private void validateVisionEstimate(){
 
         if(LimelightHelpers.getTV("limelight-front")){
@@ -380,4 +397,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
     }
+*/
+
 }

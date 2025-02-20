@@ -3,7 +3,6 @@ package frc.robot.subsystems.drivetrain;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.HashMap;
-import java.util.TreeMap;
 
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
@@ -12,7 +11,6 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;

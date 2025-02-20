@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Arrays;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -13,13 +15,19 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.drivetrain.ReefAlign;
 import frc.robot.subsystems.drivetrain.CommandSwerveDrivetrain;
 import frc.robot.subsystems.drivetrain.generated.TunerConstants;
+import util.AllianceFlipUtil;
+import util.RunnableUtil.RunOnce;
+import vision.LimelightVision.Limelight;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -34,8 +42,11 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    public double lastTagID;
+
     public RobotContainer() {
         configureBindings();
+
     }
 
     private void configureBindings() {
@@ -64,6 +75,18 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        joystick.x().onTrue(Commands.runOnce(() -> lastTagID = LimelightHelpers.getFiducialID("limelight-front")));
+        joystick.y().onTrue(Commands.runOnce(()-> lastTagID = LimelightHelpers.getFiducialID("limelight-front")));
+        
+        joystick.x().and(() -> {
+            var validTags = AllianceFlipUtil.get(FieldConstants.BLUE_VALID_REEF_TAGS, FieldConstants.RED_VALID_REEF_TAGS);
+            return validTags.contains((int) lastTagID);
+        }).whileTrue(new ReefAlign(drivetrain, true));
+        joystick.y().and(() -> {
+            var validTags = AllianceFlipUtil.get(FieldConstants.BLUE_VALID_REEF_TAGS, FieldConstants.RED_VALID_REEF_TAGS);
+            return validTags.contains((int) lastTagID);
+        }).whileTrue(new ReefAlign(drivetrain, false));
         
 
         drivetrain.registerTelemetry(logger::telemeterize);

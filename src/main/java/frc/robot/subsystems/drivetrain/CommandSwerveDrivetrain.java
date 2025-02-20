@@ -140,6 +140,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        helper =
+        new PhoenixSwerveHelper(
+            this::getPose,
+            DrivetrainConstants.MAX_SPEED,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS);
     }
 
     /**
@@ -164,6 +171,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        helper =
+        new PhoenixSwerveHelper(
+            this::getPose,
+            DrivetrainConstants.MAX_SPEED,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS);
     }
 
     /**
@@ -196,6 +210,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        helper =
+        new PhoenixSwerveHelper(
+            this::getPose,
+            DrivetrainConstants.MAX_SPEED,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS,
+            DrivetrainConstants.HEADING_CORRECTION_CONSTANTS);
     }
 
     /**
@@ -263,6 +284,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             || getLinearVelocity().getNorm() > 3.0) {
           return;
         }
+            System.out.println("Limelight: I am updating the pose!");
             addVisionMeasurement(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front").pose,
             LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front").timestampSeconds,
             VecBuilder.fill(
@@ -272,7 +294,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         }
 
-       // validateVisionEstimate();
     }
 
     private void startSimThread() {

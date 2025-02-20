@@ -4,21 +4,14 @@
 
 package frc.robot.commands.drivetrain;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.FieldConstants;
 import frc.robot.LimelightHelpers;
+import frc.robot.Logger;
 import frc.robot.subsystems.drivetrain.CommandSwerveDrivetrain;
-import lombok.AllArgsConstructor;
 import util.AllianceFlipUtil;
-import vision.LimelightVision.Limelight;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ReefAlign extends Command {
@@ -57,18 +50,16 @@ public class ReefAlign extends Command {
     }
     else TargetPose = reefLocations.get(tags.get(lastTagID)).getSecond();
     command = new DriveToPose(s_drivetrain, TargetPose);
-    //command.initialize();
+    command.initialize();
 
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    //command.execute();
+    command.execute();
     atReefPose = s_drivetrain.comparePose2d(TargetPose, 0.1, 0.1, 5);
-    SmartDashboard.putNumber("Target Reef Pose X:", TargetPose.getX());
-    SmartDashboard.putNumber("Target Reef Pose Y:", TargetPose.getY());
-    SmartDashboard.putNumber("Target Reef T:", TargetPose.getRotation().getDegrees());
+    Logger.log("TargetPose", TargetPose);
   }
 
   // Called once the command ends or is interrupted.
